@@ -4,10 +4,25 @@ pre {
   padding: 4px 8px;
 }
 
-h3#Esther-note + p {
-  margin: 24px;
-  padding: 12px;
-  color: #546E7A;
+h3#esther {
+  display: none;
+}
+h3#esther + p {
+  margin: 24px 0;
+  padding: 24px 24px 52px 24px;
+  color: #757575;
   border-radius: 5px;
-  background-color: #ECEFF1;
+  background-color: #F5F5F5;
+}
+h3#esther + p::after {
+  content: 'Esther says...';
+  font-size: 32px;
+  position: relative;;
+  top: 0;
+  bottom: 0;
+  color: #fff;
+  display: inline-block;
+  margin-top: 26px;
+  float: right;
+  margin-right: -10px;
 }
