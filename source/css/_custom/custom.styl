@@ -12,17 +12,20 @@ h3#esther + p {
   padding: 24px 24px 52px 24px;
   color: #757575;
   border-radius: 5px;
-  background-color: #F5F5F5;
+  background-color: #FAFAFA;
+  position: relative;
 }
-h3#esther + p::after {
-  content: 'Esther says...';
-  font-size: 32px;
-  position: relative;;
-  top: 0;
-  bottom: 0;
-  color: #fff;
-  display: inline-block;
-  margin-top: 26px;
-  float: right;
-  margin-right: -10px;
+h3#esther + p::before {
+  content: '“';
+  font-family: Arial;
+  font-weight: bold;
+  font-size: 120px;
+  position: absolute;
+  top: -14px;
+  left: 4px;
+  color: #EEEEEE;
+  display: block;
+  width: 50px;
+  height: 50px;
+  line-height: 80px;
 }
