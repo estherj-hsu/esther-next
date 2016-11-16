@@ -9,6 +9,20 @@
   {% endif %}
 
   <article class="{{ post_class }}" itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="{{ config.url }}{{ url_for(post.path) }}">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="{{ theme.author }}">
+    <meta itemprop="description" content="{{ theme.signature }}">
+    <meta itemprop="image" content="{{ url_for( theme.avatar | default(theme.images + '/avatar.gif') ) }}">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="{{ config.title }}">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="{{ config.title }}" src="{{ theme.custom_logo.image }}">
+    </span>
+  </span>
 
     {% if not headlessPost %}
       <header class="post-header">
@@ -47,24 +61,40 @@
 
         <div class="post-meta">
           <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">{{ __('post.posted') }}</span>
-            <time itemprop="dateCreated" datetime="{{ moment(post.date).format() }}" content="{{ date(post.date, config.date_format) }}">
-              {{ date(post.date, config.date_format) }}
-            </time>
+            {% if theme.post_meta.created_at %}
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">{{ __('post.posted') }}</span>
+              <time title="{{ __('post.created') }}" itemprop="dateCreated datePublished" datetime="{{ moment(post.date).format() }}">
+                {{ date(post.date, config.date_format) }}
+              </time>
+            {% endif %}
+
+            {% if theme.post_meta.created_at and theme.post_meta.updated_at %}
+              <span class="post-meta-divider">|</span>
+            {% endif %}
+
+            {% if theme.post_meta.updated_at %}
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              <span class="post-meta-item-text">{{ __('post.modified') }}</span>
+              <time title="{{ __('post.modified') }}" itemprop="dateModified" datetime="{{ moment(post.updated).format() }}">
+                {{ date(post.updated, config.date_format) }}
+              </time>
+            {% endif %}
           </span>
 
-          {% if post.categories and post.categories.length %}
+          {% if post.categories and post.categories.length and theme.post_meta.categories %}
             <span class="post-category" >
-              &nbsp; | &nbsp;
+              <span class="post-meta-divider">|</span>
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">{{ __('post.in') }}</span>
               {% for cat in post.categories %}
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="{{ url_for(cat.path) }}" itemprop="url" rel="index">
                     <span itemprop="name">{{ cat.name }}</span>
                   </a>
@@ -74,7 +104,6 @@
                 {% if cat_length > 1 and loop.index !== cat_length %}
                   {{ __('symbol.comma') }}
                 {% endif %}
-
               {% endfor %}
             </span>
           {% endif %}
@@ -82,37 +111,49 @@
           {% if post.comments %}
             {% if (theme.duoshuo and theme.duoshuo.shortname) or theme.duoshuo_shortname %}
               <span class="post-comments-count">
-                &nbsp; | &nbsp;
+                <span class="post-meta-divider">|</span>
                 <a href="{{ url_for(post.path) }}#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="{{ post.path }}" itemprop="commentsCount"></span>
+                  <span class="post-comments-count ds-thread-count" data-thread-key="{{ post.path }}" itemprop="commentCount"></span>
                 </a>
               </span>
             {% elseif theme.facebook_comments_plugin.enable %}
               <span class="post-comments-count">
-                &nbsp; | &nbsp;
+                <span class="post-meta-divider">|</span>
                 <a href="{{ url_for(post.path) }}#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count fb-comments-count" data-href="{{ post.permalink }}" itemprop="commentsCount">0</span> comments
+                  <span class="post-comments-count fb-comments-count" data-href="{{ post.permalink }}" itemprop="commentCount">0</span> comments
                 </a>
               </span>
             {% elseif theme.disqus_shortname %}
               <span class="post-comments-count">
-                &nbsp; | &nbsp;
+                <span class="post-meta-divider">|</span>
                 <a href="{{ url_for(post.path) }}#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="{{ post.path }}" itemprop="commentsCount"></span>
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="{{ post.path }}" itemprop="commentCount"></span>
                 </a>
               </span>
+            {% elseif theme.hypercomments_id %}
+            <!--noindex-->
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                  <a href="{{ url_for(post.path) }}#comments" itemprop="discussionUrl">
+                    <span class="post-comments-count hc-comment-count" data-xid="{{ post.path }}" itemprop="commentsCount"></span>
+                  </a>
+                </span>
+              </span>
+              <!--/noindex-->
             {% endif %}
           {% endif %}
 
           {% if not is_index and theme.facebook_sdk.enable and theme.facebook_sdk.like_button %}
-            &nbsp; | &nbsp;
+            <span class="post-meta-divider">|</span>
             <div class="fb-like" data-layout="button_count" data-share="true"></div>
           {% endif %}
 
           {# LeanCould PageView #}
           {% if theme.leancloud_visitors.enable %}
              <span id="{{ url_for(post.path) }}" class="leancloud_visitors" data-flag-title="{{ post.title }}">
-               &nbsp; | &nbsp;
+               <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
                </span>
@@ -122,11 +163,18 @@
           {% endif %}
 
           {% if not is_index and theme.busuanzi_count.enable and theme.busuanzi_count.page_pv %}
-              &nbsp; | &nbsp;
-              <span class="page-pv">{{ theme.busuanzi_count.page_pv_header }}
-              <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>{{ theme.busuanzi_count.page_pv_footer }}
-              </span>
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">{{ theme.busuanzi_count.page_pv_header }}
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>{{ theme.busuanzi_count.page_pv_footer }}
+            </span>
           {% endif %}
+
+          {% if post.description and (not theme.excerpt_description or not is_index) %}
+              <div class="post-description">
+                  {{ post.description }}
+              </div>
+          {% endif %}
+
         </div>
       </header>
     {% endif %}
@@ -154,30 +202,35 @@
       {% endif %}
 
       {% if is_index %}
-        {% if post.description %}
+        {% if post.description and theme.excerpt_description %}
           {{ post.description }}
+          <!--noindex-->
           <div class="post-more-link text-center">
             <a class="btn" href="{{ url_for(post.path) }}">
               {{ __('post.read_more') }} &raquo;
             </a>
           </div>
+          <!--/noindex-->
         {% elif post.excerpt  %}
           {{ post.excerpt }}
+          <!--noindex-->
           <div class="post-more-link text-center">
             <a class="btn" href="{{ url_for(post.path) }}{% if theme.scroll_to_more %}#more{% endif %}" rel="contents">
               {{ __('post.read_more') }} &raquo;
             </a>
           </div>
+          <!--/noindex-->
         {% elif theme.auto_excerpt.enable %}
           {% set content = post.content | striptags %}
           {{ content.substring(0, theme.auto_excerpt.length) }}
           {% if content.length > theme.auto_excerpt.length %}...{% endif %}
-
+          <!--noindex-->
           <div class="post-more-link text-center">
             <a class="btn" href="{{ url_for(post.path) }}{% if theme.scroll_to_more %}#more{% endif %}" rel="contents">
               {{ __('post.read_more') }} &raquo;
             </a>
           </div>
+          <!--/noindex-->
         {% else %}
           {% if post.type === 'picture' %}
             <a href="{{ url_for(post.path) }}">{{ post.content }}</a>
